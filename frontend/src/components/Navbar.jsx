@@ -3,14 +3,19 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const NAV_LINKS = [
-  { href: '#home', label: 'Home' },
-  { href: '#about', label: 'About' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#projects', label: 'Projects' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#goals', label: 'Goals' },
-  { href: '#contact', label: 'Contact' },
+  { id: 'home', label: 'Home' },
+  { id: 'about', label: 'About' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'goals', label: 'Goals' },
+  { id: 'contact', label: 'Contact' },
 ];
+
+const scrollToId = (id) => {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+};
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -23,11 +28,18 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const goHomeAnchor = (hash) => (e) => {
+  // We use plain section IDs (not "#id" hrefs) and scroll manually via JS.
+  // With HashRouter, the URL's # is reserved for routing (e.g. #/login) —
+  // letting the browser's native "#about" anchor jump fire would collide
+  // with that and misfire the router instead of scrolling the page.
+  const goToSection = (id) => (e) => {
+    e.preventDefault();
     setOpen(false);
     if (location.pathname !== '/') {
-      e.preventDefault();
-      navigate('/' + hash);
+      // Navigate home first, then scroll once Home has mounted (see Home.jsx).
+      navigate('/', { state: { scrollTo: id } });
+    } else {
+      scrollToId(id);
     }
   };
 
@@ -52,9 +64,9 @@ const Navbar = () => {
 
         <nav className={`site-nav__links ${open ? 'is-open' : ''}`}>
           {NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} className="site-nav__link" onClick={goHomeAnchor(link.href)}>
+            <button key={link.id} type="button" className="site-nav__link" onClick={goToSection(link.id)}>
               {link.label}
-            </a>
+            </button>
           ))}
           {user ? (
             <>
