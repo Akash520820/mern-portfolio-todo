@@ -44,6 +44,7 @@ jobs:
       - name: Build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_BASE_PATH: /mern-portfolio-todo/
         run: npm run build
 
       - name: Upload build artifact

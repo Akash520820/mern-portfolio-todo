@@ -1,0 +1,53 @@
+# Runs the full stack locally: MongoDB + backend API + frontend.
+# This is for LOCAL development/testing only — production still deploys
+# to Render (backend) and GitHub Pages (frontend) separately, as before.
+#
+# Usage:
+#   docker compose up --build
+# Then open http://localhost:8080
+#
+# Before running, create a backend/.env (see backend/.env.example) with
+# real JWT secrets. MONGO_URI is overridden below to point at the local
+# `mongo` service instead of Atlas, so you don't need an Atlas account
+# just to run this locally.
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - '27017:27017' # optional — lets you connect with a GUI tool like Compass if you want
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      # Overrides whatever MONGO_URI is in backend/.env — points at the
+      # 'mongo' service above (its hostname on the compose network) instead
+      # of Atlas.
+      MONGO_URI: mongodb://mongo:27017/mern-portfolio-todo
+      NODE_ENV: development
+      CLIENT_URL: http://localhost:8080
+    ports:
+      - '5000:5000'
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:5000/api
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
