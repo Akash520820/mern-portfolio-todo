@@ -1,0 +1,19 @@
+name: Keep Backend Awake
+
+# Render's free tier spins a web service down after 15 minutes with no
+# inbound requests. Pinging from the server itself doesn't help (Render
+# only counts incoming traffic) — this workflow runs on GitHub's own
+# infrastructure and hits the live health endpoint from the outside every
+# 10 minutes, which counts as real traffic and keeps the instance awake.
+on:
+  schedule:
+    - cron: '*/10 * * * *' # every 10 minutes (GitHub may delay a few minutes under load, still well under Render's 15-min window)
+  workflow_dispatch: {} # lets you trigger it manually from the Actions tab to test
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          curl -fsS "${{ secrets.BACKEND_HEALTH_URL }}" || echo "Ping failed (server may be cold-starting) — will retry next run"
