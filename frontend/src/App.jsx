@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ScrollProgressBar from './components/ScrollProgressBar';
@@ -13,7 +13,7 @@ import AdminDashboard from './pages/AdminDashboard';
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <HashRouter>
         <ScrollProgressBar />
         <Navbar />
         <Routes>
@@ -37,7 +37,7 @@ function App() {
           />
         </Routes>
         <ChatBubble />
-      </BrowserRouter>
+      </HashRouter>
     </AuthProvider>
   );
 }
