@@ -9,6 +9,7 @@ const TABS = [
   { key: 'education', label: 'Education' },
   { key: 'experience', label: 'Experience' },
   { key: 'projects', label: 'Projects' },
+  { key: 'certifications', label: 'Certifications' },
   { key: 'goals', label: 'Future Plans' },
   { key: 'messages', label: 'Messages' },
 ];
@@ -62,6 +63,13 @@ const PROJECT_FIELDS = [
     hint: 'Comma-separated.',
     wide: true,
   },
+];
+
+const CERTIFICATION_FIELDS = [
+  { name: 'title', label: 'Certification Title', placeholder: 'Cloud Computing', required: true, wide: true },
+  { name: 'issuer', label: 'Issuer', placeholder: 'NPTEL', required: true },
+  { name: 'date', label: 'Date', placeholder: '2024', hint: 'e.g. year completed.' },
+  { name: 'url', label: 'Credential URL', placeholder: 'https://…', hint: 'Optional — link to the certificate.' },
 ];
 
 const GOAL_FIELDS = [
@@ -180,6 +188,23 @@ const AdminDashboard = () => {
                     ))}
                   </div>
                 )}
+              </>
+            )}
+          />
+        )}
+
+        {tab === 'certifications' && (
+          <AdminResourcePanel
+            title="Certification"
+            endpoint="/certifications"
+            fields={CERTIFICATION_FIELDS}
+            renderSummary={(item) => (
+              <>
+                <h4>{item.title}</h4>
+                <p className="admin-list__meta">
+                  {item.issuer}
+                  {item.date && ` · ${item.date}`}
+                </p>
               </>
             )}
           />

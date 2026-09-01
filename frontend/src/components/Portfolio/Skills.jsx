@@ -5,13 +5,13 @@ const CATEGORIES = [
     key: 'languages',
     label: 'Programming Languages',
     icon: '{}',
-    items: ['JavaScript', 'TypeScript', 'Python', 'Java'],
+    items: ['Java', 'JavaScript'],
   },
   {
     key: 'frontend',
     label: 'Frontend Development',
     icon: '◱',
-    items: ['React', 'Next.js', 'Redux', 'Bootstrap', 'Tailwind CSS'],
+    items: ['React', 'Next.js', 'Bootstrap'],
   },
   {
     key: 'backend',
@@ -27,7 +27,7 @@ const CATEGORIES = [
   },
 ];
 
-const TOOLS = ['Git', 'GitHub', 'Postman', 'VS Code', 'Figma', 'Jira'];
+const TOOLS = ['Git', 'GitHub', 'Postman', 'VS Code', 'Claude', 'ChatGPT', 'Docker'];
 
 const Skills = () => {
   const [active, setActive] = useState(CATEGORIES[0].key);

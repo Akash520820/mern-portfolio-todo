@@ -15,6 +15,7 @@ const goalRoutes = require('./routes/goalRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const educationRoutes = require('./routes/educationRoutes');
+const certificationRoutes = require('./routes/certificationRoutes');
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use('/api/goals', goalRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/education', educationRoutes);
+app.use('/api/certifications', certificationRoutes);
 
 // 404 handler
 app.use((req, res) => {
