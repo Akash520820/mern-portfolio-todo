@@ -48,7 +48,7 @@ const Navbar = () => {
       <div className="site-nav__inner">
         <Link to="/" className="site-nav__brand">
           <span className="site-nav__brand-icon">{'<>'}</span>
-          Your Name
+          Akash Chakraborty
         </Link>
 
         <button

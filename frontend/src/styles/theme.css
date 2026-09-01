@@ -478,6 +478,31 @@ a {
   border-color: var(--accent-2-dim);
   transform: translateY(-2px);
 }
+.hero__social-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.hero__social-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-2, #1a2332);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: tooltipFade 2s ease forwards;
+}
+@keyframes tooltipFade {
+  0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
 
 .hero__portrait-wrap {
   display: flex;
