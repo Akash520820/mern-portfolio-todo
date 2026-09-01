@@ -47,7 +47,7 @@ const Navbar = () => {
     <header className="site-nav">
       <div className="site-nav__inner">
         <Link to="/" className="site-nav__brand">
-          <span className="site-nav__brand-icon">{'<>'}</span>
+          <span className="site-nav__brand-icon"></span>
           Akash Chakraborty
         </Link>
 
