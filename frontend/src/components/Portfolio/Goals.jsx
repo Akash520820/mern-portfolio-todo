@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
+import AnimatedSection from '../AnimatedSection';
+import { fadeInUp, staggerContainer, hoverBounce, revealViewport } from '../../utils/motion';
 
 const STATUS_LABEL = {
   planned: 'Planned',
@@ -29,15 +32,21 @@ const Goals = () => {
   }
 
   return (
-    <section id="goals" className="section goals">
+    <AnimatedSection id="goals" className="section goals">
       <h2 className="section-title">
         What's <span className="accent">Next</span>
       </h2>
-      <div className="container-narrow goals__grid">
+      <motion.div
+        className="container-narrow goals__grid"
+        initial="hidden"
+        whileInView="visible"
+        viewport={revealViewport}
+        variants={staggerContainer(0.1)}
+      >
         {loading
           ? [0, 1, 2].map((i) => <div className="card goals__skeleton" key={i} />)
           : goals.map((g) => (
-              <div className="card goals__card" key={g._id}>
+              <motion.div className="card goals__card" key={g._id} variants={fadeInUp} whileHover={hoverBounce.whileHover}>
                 <div className="goals__card-header">
                   <h3>{g.title}</h3>
                   <span className={STATUS_CLASS[g.status]}>{STATUS_LABEL[g.status]}</span>
@@ -48,10 +57,10 @@ const Goals = () => {
                     Target: {new Date(g.targetDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}
                   </p>
                 )}
-              </div>
+              </motion.div>
             ))}
-      </div>
-    </section>
+      </motion.div>
+    </AnimatedSection>
   );
 };
 

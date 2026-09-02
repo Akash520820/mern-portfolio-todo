@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
+import AnimatedSection from '../AnimatedSection';
+import { fadeInUp, staggerContainer, hoverBounce, buttonBounce, revealViewport } from '../../utils/motion';
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -14,12 +17,18 @@ const Projects = () => {
   }, []);
 
   return (
-    <section id="projects" className="section projects">
+    <AnimatedSection id="projects" className="section projects">
       <h2 className="section-title">
         Stuff I <span className="accent">Built</span>
       </h2>
 
-      <div className="container-narrow projects__list">
+      <motion.div
+        className="container-narrow projects__list"
+        initial="hidden"
+        whileInView="visible"
+        viewport={revealViewport}
+        variants={staggerContainer(0.12)}
+      >
         {loading &&
           [0, 1].map((i) => (
             <div className="projects__row" key={i}>
@@ -34,7 +43,12 @@ const Projects = () => {
 
         {!loading &&
           projects.map((p) => (
-            <div className="projects__row" key={p._id}>
+            <motion.div
+              className="projects__row"
+              key={p._id}
+              variants={fadeInUp}
+              whileHover={hoverBounce.whileHover}
+            >
               <div className="projects__mockup" style={{ background: p.accentColor }}>
                 <div className="projects__mockup-chrome">
                   <span />
@@ -48,9 +62,15 @@ const Projects = () => {
                 <div className="projects__info-header">
                   <h3>{p.title}</h3>
                   {p.url && (
-                    <a href={p.url} className="btn-outline-glow projects__check" target="_blank" rel="noreferrer">
+                    <motion.a
+                      href={p.url}
+                      className="btn-outline-glow projects__check"
+                      target="_blank"
+                      rel="noreferrer"
+                      {...buttonBounce}
+                    >
                       Check out ↗
-                    </a>
+                    </motion.a>
                   )}
                 </div>
                 <p className="projects__tagline">{p.tagline}</p>
@@ -71,10 +91,10 @@ const Projects = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-      </div>
-    </section>
+      </motion.div>
+    </AnimatedSection>
   );
 };
 

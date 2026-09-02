@@ -1581,3 +1581,20 @@ a {
 .admin-list__btn--danger:hover {
   background: rgba(239, 90, 111, 0.12);
 }
+
+/* ============================================
+   Motion accessibility — respected globally.
+   Framer Motion honors this via useReducedMotion()
+   where used, this is the CSS-level safety net for
+   any transition/animation declared directly in CSS.
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

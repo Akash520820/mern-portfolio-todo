@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
+import AnimatedSection from '../AnimatedSection';
+import { fadeInUp, staggerContainer, hoverBounce, buttonBounce, revealViewport } from '../../utils/motion';
 
 const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -33,37 +36,43 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="section contact">
+    <AnimatedSection id="contact" className="section contact">
       <h2 className="section-title">
         Say Hi, <span className="accent">Don't Be Shy</span>
       </h2>
 
-      <div className="container-narrow contact__grid">
-        <div className="contact__info">
-          <div className="card contact__info-card">
+      <motion.div
+        className="container-narrow contact__grid"
+        initial="hidden"
+        whileInView="visible"
+        viewport={revealViewport}
+        variants={staggerContainer(0.1)}
+      >
+        <motion.div variants={fadeInUp} className="contact__info">
+          <motion.div className="card contact__info-card" whileHover={hoverBounce.whileHover}>
             <span className="contact__info-icon">✉</span>
             <div>
               <h4>Email</h4>
               <p>{profile?.email || 'you@example.com'}</p>
             </div>
-          </div>
-          <div className="card contact__info-card">
+          </motion.div>
+          <motion.div className="card contact__info-card" whileHover={hoverBounce.whileHover}>
             <span className="contact__info-icon">☎</span>
             <div>
               <h4>Phone</h4>
               <p>{profile?.phone || '+1 234 567 890'}</p>
             </div>
-          </div>
-          <div className="card contact__info-card">
+          </motion.div>
+          <motion.div className="card contact__info-card" whileHover={hoverBounce.whileHover}>
             <span className="contact__info-icon">📍</span>
             <div>
               <h4>Location</h4>
               <p>{profile?.location || 'Your City, Country'}</p>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <form className="card contact__form" onSubmit={handleSubmit}>
+        <motion.form variants={fadeInUp} className="card contact__form" onSubmit={handleSubmit}>
           {status === 'sent' && <div className="contact__success">Thanks — your message has been sent!</div>}
           {status === 'error' && <div className="auth-card__error">{error}</div>}
           <div className="contact__form-row">
@@ -100,12 +109,17 @@ const Contact = () => {
               required
             />
           </div>
-          <button type="submit" className="btn-glow contact__submit" disabled={status === 'sending'}>
+          <motion.button
+            type="submit"
+            className="btn-glow contact__submit"
+            disabled={status === 'sending'}
+            {...buttonBounce}
+          >
             {status === 'sending' ? 'Sending…' : 'Send Message →'}
-          </button>
-        </form>
-      </div>
-    </section>
+          </motion.button>
+        </motion.form>
+      </motion.div>
+    </AnimatedSection>
   );
 };
 

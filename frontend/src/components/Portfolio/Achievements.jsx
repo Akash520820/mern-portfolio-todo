@@ -1,3 +1,7 @@
+import { motion } from 'framer-motion';
+import AnimatedSection from '../AnimatedSection';
+import { fadeInUp, staggerContainer, hoverBounce, revealViewport } from '../../utils/motion';
+
 const ACHIEVEMENTS = [
   {
     title: 'Winner, Your Hackathon 2025',
@@ -15,18 +19,24 @@ const ACHIEVEMENTS = [
 
 const Achievements = () => {
   return (
-    <section id="achievements" className="section achievements">
+    <AnimatedSection id="achievements" className="section achievements">
       <h2 className="section-title">
         <span className="accent">Achievements</span>
       </h2>
-      <div className="container-narrow timeline">
+      <motion.div
+        className="container-narrow timeline"
+        initial="hidden"
+        whileInView="visible"
+        viewport={revealViewport}
+        variants={staggerContainer(0.1)}
+      >
         {ACHIEVEMENTS.map((a, i) => (
-          <div className="timeline__row" key={a.title}>
+          <motion.div className="timeline__row" key={a.title} variants={fadeInUp}>
             <div className="timeline__marker">
               <span className="timeline__dot timeline__dot--warn" />
               {i < ACHIEVEMENTS.length - 1 && <span className="timeline__line" />}
             </div>
-            <div className="card timeline__card">
+            <motion.div className="card timeline__card" whileHover={hoverBounce.whileHover}>
               <div className="timeline__card-icon timeline__card-icon--warn">🏆</div>
               <div>
                 <h3 className="timeline__card-title">{a.title}</h3>
@@ -36,11 +46,11 @@ const Achievements = () => {
                   <span className="badge-chip badge-chip--warn">{a.period}</span>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ))}
-      </div>
-    </section>
+      </motion.div>
+    </AnimatedSection>
   );
 };
 

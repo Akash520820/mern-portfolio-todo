@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
+import AnimatedSection from '../AnimatedSection';
+import { fadeInUp, staggerContainer, hoverBounce, revealViewport } from '../../utils/motion';
 
 const Certifications = () => {
   const [certs, setCerts] = useState([]);
@@ -18,7 +21,7 @@ const Certifications = () => {
   }
 
   return (
-    <section id="certifications" className="section certifications">
+    <AnimatedSection id="certifications" className="section certifications">
       <h2 className="section-title">
         <span className="accent">Certifications</span>
       </h2>
@@ -26,7 +29,13 @@ const Certifications = () => {
         {loading ? (
           <p className="admin-list__empty">Loading…</p>
         ) : (
-          <div className="certifications__grid">
+          <motion.div
+            className="certifications__grid"
+            initial="hidden"
+            whileInView="visible"
+            viewport={revealViewport}
+            variants={staggerContainer(0.06)}
+          >
             {certs.map((c) => {
               const content = (
                 <>
@@ -41,25 +50,27 @@ const Certifications = () => {
                 </>
               );
               return c.url ? (
-                <a
+                <motion.a
                   className="certifications__item"
                   href={c.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   key={c._id}
+                  variants={fadeInUp}
+                  whileHover={hoverBounce.whileHover}
                 >
                   {content}
-                </a>
+                </motion.a>
               ) : (
-                <div className="certifications__item" key={c._id}>
+                <motion.div className="certifications__item" key={c._id} variants={fadeInUp} whileHover={hoverBounce.whileHover}>
                   {content}
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
-    </section>
+    </AnimatedSection>
   );
 };
 

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { buttonBounce } from '../utils/motion';
 
 const NAV_LINKS = [
   { id: 'home', label: 'Home' },
@@ -44,7 +46,12 @@ const Navbar = () => {
   };
 
   return (
-    <header className="site-nav">
+    <motion.header
+      className="site-nav"
+      initial={{ y: -72, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="site-nav__inner">
         <Link to="/" className="site-nav__brand">
           <span className="site-nav__brand-icon"></span>
@@ -64,9 +71,16 @@ const Navbar = () => {
 
         <nav className={`site-nav__links ${open ? 'is-open' : ''}`}>
           {NAV_LINKS.map((link) => (
-            <button key={link.id} type="button" className="site-nav__link" onClick={goToSection(link.id)}>
+            <motion.button
+              key={link.id}
+              type="button"
+              className="site-nav__link"
+              onClick={goToSection(link.id)}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.96 }}
+            >
               {link.label}
-            </button>
+            </motion.button>
           ))}
           {user ? (
             <>
@@ -81,9 +95,9 @@ const Navbar = () => {
                 </>
               )}
               <span className="site-nav__user">{user.name}</span>
-              <button className="site-nav__link site-nav__logout" onClick={handleLogout}>
+              <motion.button className="site-nav__link site-nav__logout" onClick={handleLogout} {...buttonBounce}>
                 Logout
-              </button>
+              </motion.button>
             </>
           ) : (
             <Link to="/login" className="site-nav__link" onClick={() => setOpen(false)}>
@@ -92,7 +106,7 @@ const Navbar = () => {
           )}
         </nav>
       </div>
-    </header>
+    </motion.header>
   );
 };
 

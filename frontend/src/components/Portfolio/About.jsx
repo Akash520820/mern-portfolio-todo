@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
+import AnimatedSection from '../AnimatedSection';
+import { fadeInUp, staggerContainer, hoverBounce, revealViewport } from '../../utils/motion';
 
 const About = () => {
   const [profile, setProfile] = useState(null);
@@ -20,12 +23,18 @@ const About = () => {
   }, []);
 
   return (
-    <section id="about" className="section about">
+    <AnimatedSection id="about" className="section about">
       <h2 className="section-title">
         My <span className="accent">Professional</span> Side
       </h2>
-      <div className="container-narrow about__grid">
-        <div className="card about__bio">
+      <motion.div
+        className="container-narrow about__grid"
+        initial="hidden"
+        whileInView="visible"
+        viewport={revealViewport}
+        variants={staggerContainer(0.1)}
+      >
+        <motion.div variants={fadeInUp} whileHover={hoverBounce.whileHover} className="card about__bio">
           {loading ? (
             <div className="about__bio-text about__bio-text--skeleton" />
           ) : (
@@ -60,9 +69,9 @@ const About = () => {
               </div>
             </>
           )}
-        </div>
+        </motion.div>
 
-        <div className="about__education">
+        <motion.div variants={fadeInUp} className="about__education">
           <h3 className="about__edu-heading">Education</h3>
           {loading &&
             [0, 1].map((i) => <div className="card about__edu-card about__edu-card--skeleton" key={i} />)}
@@ -73,18 +82,23 @@ const About = () => {
 
           {!loading &&
             education.map((edu) => (
-              <div className="card about__edu-card" key={edu._id}>
+              <motion.div
+                className="card about__edu-card"
+                key={edu._id}
+                whileHover={hoverBounce.whileHover}
+                whileTap={hoverBounce.whileTap}
+              >
                 <h4 className="about__edu-degree">{edu.degree}</h4>
                 <p className="about__edu-school">{edu.school}</p>
                 <div className="about__edu-footer">
                   <span>{edu.period}</span>
                   <span>{edu.detail}</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
-        </div>
-      </div>
-    </section>
+        </motion.div>
+      </motion.div>
+    </AnimatedSection>
   );
 };
 

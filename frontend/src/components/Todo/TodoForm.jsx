@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { fadeInUp, buttonBounce } from '../../utils/motion';
 
 const TodoForm = ({ onAdd }) => {
   const [title, setTitle] = useState('');
@@ -24,7 +26,13 @@ const TodoForm = ({ onAdd }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card todo-form">
+    <motion.form
+      onSubmit={handleSubmit}
+      className="card todo-form"
+      initial="hidden"
+      animate="visible"
+      variants={fadeInUp}
+    >
       <input
         type="text"
         className="todo-form__title"
@@ -52,11 +60,11 @@ const TodoForm = ({ onAdd }) => {
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
         />
-        <button type="submit" className="btn-glow todo-form__submit" disabled={submitting}>
+        <motion.button type="submit" className="btn-glow todo-form__submit" disabled={submitting} {...buttonBounce}>
           Add
-        </button>
+        </motion.button>
       </div>
-    </form>
+    </motion.form>
   );
 };
 

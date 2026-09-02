@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { staggerContainer, fadeInUp, buttonBounce } from '../../utils/motion';
 
 const SOCIALS = [
   { label: 'GitHub', href: 'https://github.com/Akash520820', icon: 'M12 .5C5.73.5.98 5.24.98 11.5c0 4.98 3.23 9.2 7.72 10.69.56.1.77-.24.77-.54 0-.27-.01-1-.01-1.96-3.14.68-3.8-1.5-3.8-1.5-.52-1.3-1.26-1.65-1.26-1.65-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94.1-.73.4-1.23.72-1.51-2.5-.28-5.13-1.25-5.13-5.57 0-1.23.44-2.24 1.16-3.03-.12-.28-.5-1.42.11-2.96 0 0 .95-.3 3.1 1.16a10.7 10.7 0 0 1 5.65 0c2.15-1.46 3.1-1.16 3.1-1.16.6 1.54.23 2.68.11 2.96.72.79 1.16 1.8 1.16 3.03 0 4.33-2.64 5.28-5.15 5.56.42.36.78 1.07.78 2.15 0 1.56-.01 2.81-.01 3.19 0 .3.2.65.78.54A11.02 11.02 0 0 0 23.02 11.5C23.02 5.24 18.27.5 12 .5Z' },
@@ -17,49 +18,83 @@ const Hero = () => {
 
   return (
     <section id="home" className="hero">
-      <div className="hero__inner">
+      <motion.div
+        className="hero__inner"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer(0.12, 0.1)}
+      >
         <div className="hero__text">
-          <p className="eyebrow">Hey, I'm Akash Chakraborty</p>
-          <h1 className="hero__headline">
+          <motion.p variants={fadeInUp} className="eyebrow">
+            Hey, I'm Akash Chakraborty
+          </motion.p>
+          <motion.h1 variants={fadeInUp} className="hero__headline">
             Build. <span className="hero__headline-accent">Ship.</span>
-          </h1>
-          <h2 className="hero__subhead">Full-Stack Engineer across MERN, Cloud & AI</h2>
-          <p className="hero__desc">
+          </motion.h1>
+          <motion.h2 variants={fadeInUp} className="hero__subhead">
+            Full-Stack Engineer across MERN, Cloud &amp; AI
+          </motion.h2>
+          <motion.p variants={fadeInUp} className="hero__desc">
             I build practical, high-impact products end to end — from responsive React
             frontends to secure Express APIs and MongoDB data layers. This portfolio and
             the private todo app powering it are both built on the same MERN stack.
-          </p>
-          <div className="hero__ctas">
-            <button type="button" onClick={scrollToContact} className="btn-glow">
+          </motion.p>
+          <motion.div variants={fadeInUp} className="hero__ctas">
+            <motion.button
+              type="button"
+              onClick={scrollToContact}
+              className="btn-glow"
+              {...buttonBounce}
+            >
               Get in Touch →
-            </button>
-          </div>
-          <div className="hero__socials">
+            </motion.button>
+          </motion.div>
+          <motion.div variants={fadeInUp} className="hero__socials">
             {SOCIALS.map((s) => (
-              <a key={s.label} href={s.href} aria-label={s.label} className="hero__social" target="_blank" rel="noreferrer">
+              <motion.a
+                key={s.label}
+                href={s.href}
+                aria-label={s.label}
+                className="hero__social"
+                target="_blank"
+                rel="noreferrer"
+                {...buttonBounce}
+              >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
                   <path d={s.icon} />
                 </svg>
-              </a>
+              </motion.a>
             ))}
             {/* Email icon scrolls to the Contact section (like "Get in Touch")
                 instead of relying on mailto:, since Contact already shows the
                 email/phone/location and a working message form — a more
                 complete option than a mailto link some visitors can't use. */}
-            <button type="button" onClick={scrollToContact} aria-label="Email" className="hero__social">
+            <motion.button
+              type="button"
+              onClick={scrollToContact}
+              aria-label="Email"
+              className="hero__social"
+              {...buttonBounce}
+            >
               <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
                 <path d={EMAIL_ICON} />
               </svg>
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
 
-        <div className="hero__portrait-wrap" aria-hidden="true">
+        <motion.div
+          className="hero__portrait-wrap"
+          aria-hidden="true"
+          variants={fadeInUp}
+          animate={{ y: [0, -10, 0] }}
+          transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
+        >
           <div className="hero__portrait">
             <div className="hero__portrait-glyph">{'</>'}</div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 };
