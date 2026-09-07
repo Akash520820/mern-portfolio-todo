@@ -78,7 +78,7 @@ const Contact = () => {
           <div className="contact__form-row">
             <div className="contact__field">
               <label htmlFor="name">Your Name</label>
-              <input id="name" name="name" value={form.name} onChange={handleChange} placeholder="Jane Doe" required />
+              <input id="name" name="name" value={form.name} onChange={handleChange} placeholder="Enter your name" required />
             </div>
             <div className="contact__field">
               <label htmlFor="email">Your Email</label>
@@ -88,7 +88,7 @@ const Contact = () => {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                placeholder="jane@company.com"
+                placeholder="Enter your email"
                 required
               />
             </div>
