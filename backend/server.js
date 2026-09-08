@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 
 const connectDB = require('./config/db');
+const healthRoutes = require('./routes/healthRoutes');
 const authRoutes = require('./routes/authRoutes');
 const todoRoutes = require('./routes/todoRoutes');
 const projectRoutes = require('./routes/projectRoutes');
@@ -21,6 +22,16 @@ const app = express();
 
 // Connect to MongoDB
 connectDB();
+
+// Health check mounted first, before any other middleware. It never touches
+// the DB and must never be caught behind CORS, helmet, rate limiting, or
+// mongoSanitize — those exist to protect the real API surface, not a
+// liveness probe. This is what let it silently break before: it was
+// declared inline down near the bottom, after CORS was locked to
+// CLIENT_URL and after the rate limiters, so anything hitting it from an
+// origin/tool that CORS didn't recognise, or that had already used up the
+// shared /api/ rate-limit bucket, wouldn't get a clean 200.
+app.use('/api/health', healthRoutes);
 
 // --- Security middleware ---
 app.use(helmet()); // secure HTTP headers
@@ -66,7 +77,6 @@ app.use((req, res, next) => {
 });
 
 // --- Routes ---
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/todos', todoRoutes);
 app.use('/api/projects', projectRoutes);
