@@ -20,6 +20,13 @@ const certificationRoutes = require('./routes/certificationRoutes');
 
 const app = express();
 
+// Render (and most PaaS hosts) put the app behind one reverse-proxy hop and
+// add an X-Forwarded-For header on every request. express-rate-limit v7
+// refuses to trust that header by default (to stop IP-spoofing bypassing
+// rate limits) and throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR until the
+// trusted proxy count is set explicitly.
+app.set('trust proxy', 1);
+
 // Connect to MongoDB
 connectDB();
 
