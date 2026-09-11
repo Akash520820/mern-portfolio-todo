@@ -1,9 +1,26 @@
 const express = require('express');
-const { body } = require('express-validator');
-const { loginUser, refreshToken, logoutUser, getMe } = require('../controllers/authController');
+const { body, param } = require('express-validator');
+const rateLimit = require('express-rate-limit');
+const {
+  loginUser,
+  refreshToken,
+  logoutUser,
+  getMe,
+  forgotPassword,
+  resetPassword,
+} = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
+
+// Tighter than the app-wide /api/auth limiter (20/15min) — this endpoint
+// sends an email and is the one most worth throttling hard, since it's the
+// public entry point into the reset flow.
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: { message: 'Too many password reset requests, please try again later.' },
+});
 
 // No public registration route on purpose — this is a single-admin portfolio
 // site. The only account is the one created via `npm run create-admin`.
@@ -22,5 +39,21 @@ router.post(
 router.post('/refresh', refreshToken);
 router.post('/logout', logoutUser);
 router.get('/me', protect, getMe);
+
+router.post(
+  '/forgot-password',
+  forgotPasswordLimiter,
+  [body('email').isEmail().withMessage('Valid email is required').normalizeEmail()],
+  forgotPassword
+);
+
+router.post(
+  '/reset-password/:token',
+  [
+    param('token').isHexadecimal().isLength({ min: 64, max: 64 }).withMessage('Invalid reset token'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  ],
+  resetPassword
+);
 
 module.exports = router;

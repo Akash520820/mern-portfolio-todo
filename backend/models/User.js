@@ -35,6 +35,19 @@ const userSchema = new mongoose.Schema(
       select: false,
       default: null,
     },
+    // Hash of the current valid password-reset token (same "never store the
+    // raw value" pattern as refreshTokenHash above). Set by /forgot-password,
+    // consumed (and cleared) by /reset-password/:token.
+    resetPasswordTokenHash: {
+      type: String,
+      select: false,
+      default: null,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      select: false,
+      default: null,
+    },
   },
   { timestamps: true }
 );

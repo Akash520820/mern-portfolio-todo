@@ -2,10 +2,17 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
+const sendEmail = require('../utils/sendEmail');
+const { isEmailAllowed } = require('../utils/allowedEmails');
 
 const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
 const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // keep in sync with REFRESH_EXPIRES_IN above
+const RESET_TOKEN_EXPIRES_MS = 15 * 60 * 1000; // 15 minutes
+// Generic response for /forgot-password no matter what happened server-side,
+// so a caller can't use it to probe which emails exist or are allowed.
+const FORGOT_PASSWORD_GENERIC_MESSAGE =
+  'If that email is registered and allowed to use this app, a password reset link has been sent.';
 
 const generateAccessToken = (id) =>
   jwt.sign({ id }, process.env.JWT_ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
@@ -97,6 +104,13 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    // Solo-project gate: only pre-approved email(s) may even attempt login,
+    // checked before touching the DB. Same generic error as a bad password
+    // below, so this doesn't reveal which emails are allowed.
+    if (!isEmailAllowed(email)) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
     const user = await User.findOne({ email }).select('+password');
 
     if (!user || !(await user.matchPassword(password))) {
@@ -181,4 +195,95 @@ const getMe = async (req, res) => {
   res.json(req.user);
 };
 
-module.exports = { registerUser, loginUser, refreshToken, logoutUser, getMe };
+// @desc    Request a password reset link. Always responds with the same
+//          generic message, whether or not the email exists/is allowed,
+//          so this endpoint can't be used to enumerate accounts.
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { email } = req.body;
+
+  try {
+    if (isEmailAllowed(email)) {
+      const user = await User.findOne({ email });
+
+      if (user) {
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordTokenHash = hashToken(rawToken);
+        user.resetPasswordExpires = Date.now() + RESET_TOKEN_EXPIRES_MS;
+        await user.save({ validateBeforeSave: false });
+
+        const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/#/reset-password/${rawToken}`;
+
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: 'Reset your password',
+            text: `You requested a password reset. This link expires in 15 minutes: ${resetUrl}\n\nIf you didn't request this, you can ignore this email.`,
+            html: `<p>You requested a password reset.</p><p><a href="${resetUrl}">Click here to reset your password</a> (expires in 15 minutes).</p><p>If you didn't request this, you can ignore this email.</p>`,
+          });
+        } catch (emailError) {
+          // Don't leak email-delivery failures to the client - just log
+          // server-side and still return the generic message below.
+          console.error('Failed to send password reset email:', emailError.message);
+        }
+      }
+    }
+
+    res.json({ message: FORGOT_PASSWORD_GENERIC_MESSAGE });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Reset password using the token emailed by /forgot-password
+// @route   POST /api/auth/reset-password/:token
+// @access  Public (requires valid, unexpired token)
+const resetPassword = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const hashedToken = hashToken(token);
+    const user = await User.findOne({
+      resetPasswordTokenHash: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    }).select('+resetPasswordTokenHash +resetPasswordExpires');
+
+    if (!user) {
+      return res.status(400).json({ message: 'This reset link is invalid or has expired.' });
+    }
+
+    user.password = password; // re-hashed by the pre('save') hook
+    user.resetPasswordTokenHash = null;
+    user.resetPasswordExpires = null;
+    // Resetting the password invalidates any existing session everywhere.
+    user.refreshTokenHash = null;
+    await user.save();
+
+    clearAuthCookies(res);
+    res.json({ message: 'Password has been reset. Please log in with your new password.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  refreshToken,
+  logoutUser,
+  getMe,
+  forgotPassword,
+  resetPassword,
+};

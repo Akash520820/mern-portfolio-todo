@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -9,6 +9,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const resetSuccess = location.state?.resetSuccess;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +31,9 @@ const Login = () => {
       <div className="card auth-card">
         <p className="eyebrow">{'{auth}'}</p>
         <h2 className="auth-card__title">Login</h2>
+        {resetSuccess && (
+          <div className="auth-card__success">Password reset. Please log in with your new password.</div>
+        )}
         {error && <div className="auth-card__error">{error}</div>}
         <form onSubmit={handleSubmit} className="auth-card__form">
           <div className="contact__field">
@@ -49,6 +54,9 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login →'}
           </button>
         </form>
+        <p className="auth-card__switch">
+          <Link to="/forgot-password">Forgot password?</Link>
+        </p>
       </div>
     </div>
   );
