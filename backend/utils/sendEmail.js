@@ -1,43 +1,40 @@
-const nodemailer = require('nodemailer');
-
-// Gmail SMTP via an App Password (NOT your normal Gmail password).
-// Requires 2-Step Verification enabled on the Google account, then create
-// an App Password at https://myaccount.google.com/apppasswords and put it
-// in EMAIL_APP_PASSWORD (backend/.env). EMAIL_USER is the full gmail.com
-// address that password belongs to.
-let transporter = null;
-
-const getTransporter = () => {
-  if (transporter) return transporter;
-
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-    throw new Error(
-      'EMAIL_USER and EMAIL_APP_PASSWORD must be set in backend/.env to send emails (Gmail App Password).'
-    );
-  }
-
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_APP_PASSWORD,
-    },
-  });
-
-  return transporter;
-};
+// Resend's transactional email HTTP API (https://resend.com), used instead
+// of SMTP because Render's free tier blocks outbound traffic on SMTP ports
+// (25, 465, 587) as of Sept 2025 - see https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports
+// Resend runs over plain HTTPS (port 443), which is never blocked.
+//
+// Get a free API key at https://resend.com/api-keys and put it in
+// RESEND_API_KEY (backend/.env). Without a verified domain, Resend only
+// lets you send from onboarding@resend.dev and only to the email address
+// you signed up with - which is exactly this app's single-admin use case,
+// so no domain verification is required.
+const RESEND_API_URL = 'https://api.resend.com/emails';
 
 // sendEmail({ to, subject, html, text })
 const sendEmail = async ({ to, subject, html, text }) => {
-  const mailer = getTransporter();
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY must be set in backend/.env to send emails.');
+  }
 
-  await mailer.sendMail({
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-    to,
-    subject,
-    text,
-    html,
+  const response = await fetch(RESEND_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+      to,
+      subject,
+      text,
+      html,
+    }),
   });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`Resend API error (${response.status}): ${body}`);
+  }
 };
 
 module.exports = sendEmail;
