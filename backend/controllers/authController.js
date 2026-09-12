@@ -218,7 +218,15 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordExpires = Date.now() + RESET_TOKEN_EXPIRES_MS;
         await user.save({ validateBeforeSave: false });
 
-        const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/#/reset-password/${rawToken}`;
+        // Deliberately NOT reusing CLIENT_URL here: CLIENT_URL is also used
+        // for the CORS origin check in server.js, and CORS matches against
+        // the browser's Origin header, which never includes a path (e.g.
+        // https://you.github.io, NOT https://you.github.io/repo-name). This
+        // separate var lets the reset link include a repo sub-path (needed
+        // for GitHub Pages project sites) without breaking CORS.
+        const resetUrlBase =
+          process.env.PASSWORD_RESET_BASE_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+        const resetUrl = `${resetUrlBase}/#/reset-password/${rawToken}`;
 
         try {
           await sendEmail({
