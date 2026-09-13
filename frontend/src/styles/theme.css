@@ -1117,6 +1117,20 @@ a {
   width: 100%;
   margin-top: 0.25rem;
 }
+.auth-card__resend {
+  background: none;
+  border: none;
+  color: var(--accent-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  align-self: center;
+}
+.auth-card__resend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .auth-card__switch {
   text-align: center;
   color: var(--text-muted);

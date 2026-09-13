@@ -4,15 +4,16 @@ const { validationResult } = require('express-validator');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const { isEmailAllowed } = require('../utils/allowedEmails');
+const { generateOtp } = require('../utils/otp');
 
 const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
 const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // keep in sync with REFRESH_EXPIRES_IN above
-const RESET_TOKEN_EXPIRES_MS = 15 * 60 * 1000; // 15 minutes
+const RESET_OTP_EXPIRES_MS = 10 * 60 * 1000; // 10 minutes
 // Generic response for /forgot-password no matter what happened server-side,
 // so a caller can't use it to probe which emails exist or are allowed.
 const FORGOT_PASSWORD_GENERIC_MESSAGE =
-  'If that email is registered and allowed to use this app, a password reset link has been sent.';
+  'If that email is registered and allowed to use this app, a reset code has been sent.';
 
 const generateAccessToken = (id) =>
   jwt.sign({ id }, process.env.JWT_ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
@@ -195,7 +196,7 @@ const getMe = async (req, res) => {
   res.json(req.user);
 };
 
-// @desc    Request a password reset link. Always responds with the same
+// @desc    Request a password reset OTP. Always responds with the same
 //          generic message, whether or not the email exists/is allowed,
 //          so this endpoint can't be used to enumerate accounts.
 // @route   POST /api/auth/forgot-password
@@ -213,32 +214,22 @@ const forgotPassword = async (req, res) => {
       const user = await User.findOne({ email });
 
       if (user) {
-        const rawToken = crypto.randomBytes(32).toString('hex');
-        user.resetPasswordTokenHash = hashToken(rawToken);
-        user.resetPasswordExpires = Date.now() + RESET_TOKEN_EXPIRES_MS;
+        const { otp, hashedOtp } = generateOtp();
+        user.resetPasswordOtp = hashedOtp;
+        user.resetPasswordOtpExpiry = Date.now() + RESET_OTP_EXPIRES_MS;
         await user.save({ validateBeforeSave: false });
-
-        // Deliberately NOT reusing CLIENT_URL here: CLIENT_URL is also used
-        // for the CORS origin check in server.js, and CORS matches against
-        // the browser's Origin header, which never includes a path (e.g.
-        // https://you.github.io, NOT https://you.github.io/repo-name). This
-        // separate var lets the reset link include a repo sub-path (needed
-        // for GitHub Pages project sites) without breaking CORS.
-        const resetUrlBase =
-          process.env.PASSWORD_RESET_BASE_URL || process.env.CLIENT_URL || 'http://localhost:5173';
-        const resetUrl = `${resetUrlBase}/#/reset-password/${rawToken}`;
 
         try {
           await sendEmail({
             to: user.email,
-            subject: 'Reset your password',
-            text: `You requested a password reset. This link expires in 15 minutes: ${resetUrl}\n\nIf you didn't request this, you can ignore this email.`,
-            html: `<p>You requested a password reset.</p><p><a href="${resetUrl}">Click here to reset your password</a> (expires in 15 minutes).</p><p>If you didn't request this, you can ignore this email.</p>`,
+            subject: 'Your password reset code',
+            text: `Your password reset code is ${otp}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`,
+            html: `<p>Your password reset code is:</p><h2 style="letter-spacing: 4px;">${otp}</h2><p>This code expires in 10 minutes. If you didn't request this, you can ignore this email.</p>`,
           });
         } catch (emailError) {
           // Don't leak email-delivery failures to the client - just log
           // server-side and still return the generic message below.
-          console.error('Failed to send password reset email:', emailError.message);
+          console.error('Failed to send password reset OTP email:', emailError.message);
         }
       }
     }
@@ -249,32 +240,35 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// @desc    Reset password using the token emailed by /forgot-password
-// @route   POST /api/auth/reset-password/:token
-// @access  Public (requires valid, unexpired token)
+// @desc    Verify the OTP emailed by /forgot-password and set a new password
+// @route   POST /api/auth/reset-password
+// @access  Public (requires a valid, unexpired OTP for the given email)
 const resetPassword = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { token } = req.params;
-  const { password } = req.body;
+  const { email, otp, password } = req.body;
 
   try {
-    const hashedToken = hashToken(token);
-    const user = await User.findOne({
-      resetPasswordTokenHash: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() },
-    }).select('+resetPasswordTokenHash +resetPasswordExpires');
+    const user = await User.findOne({ email }).select('+resetPasswordOtp +resetPasswordOtpExpiry');
 
-    if (!user) {
-      return res.status(400).json({ message: 'This reset link is invalid or has expired.' });
+    if (!user || !user.resetPasswordOtp || !user.resetPasswordOtpExpiry) {
+      return res.status(400).json({ message: 'Invalid or expired reset request. Please request a new code.' });
+    }
+
+    if (user.resetPasswordOtpExpiry < Date.now()) {
+      return res.status(400).json({ message: 'This reset code has expired. Please request a new one.' });
+    }
+
+    if (hashToken(otp) !== user.resetPasswordOtp) {
+      return res.status(400).json({ message: 'Invalid reset code.' });
     }
 
     user.password = password; // re-hashed by the pre('save') hook
-    user.resetPasswordTokenHash = null;
-    user.resetPasswordExpires = null;
+    user.resetPasswordOtp = null;
+    user.resetPasswordOtpExpiry = null;
     // Resetting the password invalidates any existing session everywhere.
     user.refreshTokenHash = null;
     await user.save();
