@@ -25,6 +25,14 @@ const projectSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    // Optional extra links for projects split across multiple services/portals
+    // (e.g. microservices with separate admin/seller/user portals). Each entry
+    // is a "Label: https://url" string. Simple single-link projects can just
+    // keep using `url` above and leave this empty.
+    links: {
+      type: [String],
+      default: [],
+    },
     accentColor: {
       type: String,
       trim: true,

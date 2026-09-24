@@ -39,7 +39,15 @@ const EXPERIENCE_FIELDS = [
 const PROJECT_FIELDS = [
   { name: 'title', label: 'Project Title', placeholder: 'WealthWise', required: true },
   { name: 'tagline', label: 'Tagline', placeholder: 'One-line summary of the project', required: true, wide: true },
-  { name: 'url', label: 'Live / Repo URL', placeholder: 'https://…' },
+  { name: 'url', label: 'Live / Repo URL', placeholder: 'https://…', hint: 'Use this for a single-URL (monolithic) project.' },
+  {
+    name: 'links',
+    label: 'Extra Links',
+    type: 'list',
+    placeholder: 'Admin Portal: https://…\nSeller Portal: https://…\nUser Portal: https://…',
+    hint: 'Optional, one per line as "Label: URL" — for projects split across multiple portals/services. Leave the URL field above blank or use it for a primary/gateway link.',
+    wide: true,
+  },
   {
     name: 'accentColor',
     label: 'Accent (CSS gradient)',

@@ -778,6 +778,12 @@ a {
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
+.projects__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
 .projects__bullets {
   margin: 0 0 1.25rem;
   padding-left: 1.1rem;
