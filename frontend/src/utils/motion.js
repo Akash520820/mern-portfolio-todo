@@ -39,4 +39,10 @@ export const buttonBounce = {
 
 // Default viewport settings for scroll-triggered reveals — fires once,
 // a little before the element is fully in view.
-export const revealViewport = { once: true, amount: 0.25 };
+// NOTE: amount must be 'some' (any pixel visible), NOT a fraction like 0.25.
+// A fractional amount means "25% of the element must be on screen at once",
+// which is impossible for tall blocks (e.g. the Projects list stacked on a
+// narrow screen can be taller than 4x the viewport) -> it never reveals and
+// stays at opacity 0. The negative bottom margin keeps the reveal feeling
+// like it fires slightly after the element enters the screen.
+export const revealViewport = { once: true, amount: 'some', margin: '0px 0px -60px 0px' };
